@@ -1,0 +1,14 @@
+path=s02_tool_use/code.py
+
+<<<<<<< SEARCH
+def agent_loop(messages: list):
+    while True:
+=======
+def agent_loop(messages: list):
+    """Run the agent loop: send messages to Claude, execute tool calls, append results.
+
+    Args:
+        messages: Conversation history as a list of message dicts.
+    """
+    while True:
+>>>>>>> REPLACE
