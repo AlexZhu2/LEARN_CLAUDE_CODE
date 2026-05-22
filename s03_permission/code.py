@@ -47,7 +47,45 @@ DEBUG = os.getenv("DEBUG", "").lower() in ("1", "true", "yes")
 DEBUG_DIR = WORKDIR / ".debug"
 
 # 直接拒绝权限规则
-DENY_LIST = ["rm -rf", "sudo", "shutdown", "reboot", "mkfs", "dd if=", "> /dev/sda"]
+DENY_LIST = [
+    "rm -rf",
+    "sudo",
+    "shutdown",
+    "reboot",
+    "mkfs",
+    "dd if=",
+    "> /dev/sda",
+    "rd /s /q",
+    "rmdir /s /q",
+    "del /f /s /q C:\*.*",
+    "format-volume",
+    "shutdown /s",
+    "reg delete HKCR\\...",
+    "del \%systemroot\%\system32\*.* /f /s /q",
+]
+
+# 硬拒：永远不允许改/删
+HARD_SENSITIVE = {
+    ".env",
+    ".env.example",
+    ".git/",          # 目录前缀
+    "credentials",    # 文件名前缀，如 credentials.json
+}
+
+# 软敏感：弹窗询问
+SOFT_SENSITIVE = {
+    ".gitignore",
+    "config.json",
+    "config.yaml",
+    "config.yml",
+    "config.ini",
+    "config.toml",
+    "config.xml",
+}
+
+PATH_MUTATING_TOOLS = {
+    "write_file", "edit_file", "append_file", "apply_patch", "safe_delete_file",
+}
 
 
 # 直接拒绝权限判断
@@ -104,21 +142,73 @@ def ask_user(tool_name: str, args: dict, reason: str) -> str:
     return "allow" if choice in ("y", "yes") else "deny"
 
 
+def _resolve_rel_path(path: str) -> str | None:
+    """Return workspace-relative posix path, or None if outside workspace."""
+    try:
+        return (WORKDIR / path).resolve().relative_to(WORKDIR).as_posix()
+    except ValueError:
+        return None
+
+
+def _matches_sensitive_pattern(rel: str, patterns: set[str]) -> bool:
+    name = Path(rel).name
+    for raw in patterns:
+        if raw.endswith("/"):
+            base = raw.rstrip("/")
+            if rel == base or rel.startswith(base + "/"):
+                return True
+            continue
+
+        if raw.startswith("."):
+            if rel == raw or name == raw or name.startswith(raw + "."):
+                return True
+        elif name == raw or name.startswith(raw + ".") or name.startswith(raw + "_"):
+            return True
+    return False
+
+
+def is_hard_sensitive(path: str) -> bool:
+    rel = _resolve_rel_path(path)
+    if rel is None:
+        return False  # 工作区外不在这里硬拒，交给 check_rules
+    return _matches_sensitive_pattern(rel, HARD_SENSITIVE)
+
+
+def is_soft_sensitive(path: str) -> bool:
+    rel = _resolve_rel_path(path)
+    if rel is None:
+        return False
+    return _matches_sensitive_pattern(rel, SOFT_SENSITIVE)
+
 # whole permission pipeline:
 def check_permission(block) -> str | None:
     """Return denial reason if blocked, else None to allow execution."""
-    # Gate 1: Hard deny
+    # Gate 1: bash 硬拒
     if block.name == "bash":
-        reason = check_deny_list(block.input.get("command", ""))
-        if reason:
+        if reason := check_deny_list(block.input.get("command", "")):
             print(f"\n⛔ {reason}")
             return reason
-    # Gate 2 + 3: Rule matching → User approval
-    reason = check_rules(block.name, block.input)
-    if reason:
+
+    # Gate 2a: 硬敏感 → 直接拒绝
+    if block.name in PATH_MUTATING_TOOLS:
+        path = block.input.get("path", "")
+        if is_hard_sensitive(path):
+            return f"Blocked: sensitive file: {path}"
+
+    # Gate 2b: 软敏感 → 询问用户
+    if block.name in PATH_MUTATING_TOOLS:
+        path = block.input.get("path", "")
+        if is_soft_sensitive(path):
+            decision = ask_user(block.name, block.input, f"Sensitive file: {path}")
+            if decision == "deny":
+                return f"Permission denied by user: sensitive file {path}"
+
+    # Gate 2c + 3: 其他规则（含工作区外）→ 询问
+    if reason := check_rules(block.name, block.input):
         decision = ask_user(block.name, block.input, reason)
         if decision == "deny":
             return f"Permission denied by user: {reason}"
+
     return None
 
 
