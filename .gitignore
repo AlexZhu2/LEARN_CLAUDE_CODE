@@ -228,6 +228,9 @@ web/out/
 .env*.local
 test_providers.py
 
+# Agent runtime debug logs (hooks, timing, session traces)
+.debug/
+
 # Internal analysis artifacts (not learning material)
 analysis/
 analysis_progress.md
