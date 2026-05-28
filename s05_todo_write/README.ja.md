@@ -116,7 +116,7 @@ python s05_todo_write/code.py
 
 以下のプロンプトを試してみよう：
 
-1. `Refactor s05_todo_write/example/hello.py: add type hints, docstrings, and a main guard`（まず 3 手順を列挙してから実行するはず）
+1. `Refactor s05_todo_write/example/hello_world.py: add type hints, docstrings, and a main guard`（まず 3 手順を列挙してから実行するはず）
 2. `Create a Python package under s05_todo_write/example/demo_pkg with __init__.py, utils.py, and tests/test_utils.py`
 3. `Review Python files under s05_todo_write/example and fix any style issues`
 

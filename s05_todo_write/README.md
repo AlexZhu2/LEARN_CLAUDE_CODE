@@ -116,7 +116,7 @@ python s05_todo_write/code.py
 
 试试这些 prompt：
 
-1. `Refactor s05_todo_write/example/hello.py: add type hints, docstrings, and a main guard`（先列 3 步再执行）
+1. `Refactor s05_todo_write/example/hello_world.py: add type hints, docstrings, and a main guard`（先列 3 步再执行）
 2. `Create a Python package under s05_todo_write/example/demo_pkg with __init__.py, utils.py, and tests/test_utils.py`
 3. `Review Python files under s05_todo_write/example and fix any style issues`
 
@@ -153,4 +153,4 @@ Task System 相比 TodoWrite 的核心增量：
 
 </details>
 
-<!-- translation-sync: zh@v1, en@v0, ja@v0 -->
+<!-- translation-sync: zh@v1, en@v1, ja@v1 -->

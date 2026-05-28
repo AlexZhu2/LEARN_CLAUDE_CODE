@@ -224,6 +224,7 @@ __marimo__/
 web/node_modules/
 web/.next/
 web/out/
+web/*
 .vercel
 .env*.local
 test_providers.py
