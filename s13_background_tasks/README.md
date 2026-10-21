@@ -24,7 +24,7 @@ Agent 的 bash 工具也一样。`pip install torch` 要 10 分钟，`npm run bu
 
 ![Background Tasks Overview](images/background-tasks-overview.svg)
 
-教学代码沿用 S12 的简化任务系统和 prompt 组装；为了聚焦后台任务，省略完整错误恢复、记忆和技能系统。唯一的变动：慢操作扔到后台线程，Agent 继续跑循环，后台完成后把通知注入到对话里。
+教学代码以 S12 完整 agent（任务系统、记忆、compact、技能、hooks、错误恢复）为基底，在其上叠加后台任务。唯一的变动：慢操作扔到后台线程，Agent 继续跑循环，后台完成后把通知注入到对话里。
 
 同步 vs 后台：
 

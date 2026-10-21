@@ -21,7 +21,7 @@ s13 让 Agent 能后台执行慢操作，但所有操作仍然是你手动触发
 
 ![Cron Scheduler Overview](images/cron-scheduler-overview.svg)
 
-教学代码沿用 S13 的简化任务系统、后台执行和 prompt 组装；为了聚焦调度器，省略完整错误恢复、记忆和技能系统。新增：独立的 cron 调度线程，每秒检查一次，时间到了把任务塞进 `cron_queue`；再由 queue processor 在 Agent 空闲时自动交付。
+教学代码以 S13 完整 agent（后台任务、任务系统、记忆、compact、技能、hooks、错误恢复）为基底，在其上叠加 cron 调度器。新增：独立的 cron 调度线程，每秒检查一次，时间到了把任务塞进 `cron_queue`；再由 queue processor 在 Agent 空闲时自动交付。
 
 手动 vs 定时：
 
@@ -223,7 +223,7 @@ def schedule_job(cron, prompt, recurring=True, durable=True):
 | 新存储 | — | .scheduled_tasks.json (durable) + 内存 (session-only) |
 | 线程 | 后台执行线程 | + 调度线程 (daemon, 1s 轮询) + queue processor 线程 |
 | 队列 | background_results | + cron_queue (调度线程写, queue processor 交付, agent_loop 消费) |
-| 工具 | 8 (s12/s13) | + schedule_cron, list_crons, cancel_cron (11) |
+| 工具 | s13 全套（含后台 bash） | + schedule_cron, list_crons, cancel_cron |
 
 ---
 
